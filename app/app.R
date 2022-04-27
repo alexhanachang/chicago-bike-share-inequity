@@ -23,9 +23,6 @@ communities <- read_rds("data/communities.RDS")
 divvy_demographics <- readRDS("data/divvy_demographics.RDS")
 divvy_density <- readRDS("data/divvy_density.RDS")
 divvy_stations <- readRDS("data/divvy_stations.RDS") 
-
-income_plots <- readRDS("data/income_plots.RDS")
-race_plots <- readRDS("data/race_plots.RDS") 
 demographics_plots_no_title <- readRDS("data/demographics_plots_no_title.RDS")
 
 # define color palettes for maps
@@ -94,46 +91,7 @@ ui <- bootstrapPage(
       )
     ), 
    
-    ## Chicago demographics page (popup graphs)
-    navbarMenu(
-      # page title
-      "Chicago Demographics Maps",
-
-      tabPanel(
-        "Race",
-        div(
-          class = "outer",
-          absolutePanel(
-            span(tags$i(h6("This is a map for exploring the racial demographics of communities across Chicago.
-                           This map is scaled to the proportion of the community that is White;
-                           darker shades of green represent more White neighborhoods while lighter shades of green represent less White neighborhoods.")), style = "color: #FFFFFF"),
-            span(tags$i(h6("When hovering over a neighborhood, you will see the name of the neighborhood.")), style = "color: #FFFFFF"),
-            span(tags$i(h6("By clicking on a neighborhood, a popup graph will appear, and you will see the racial breakdown of the community area,
-                          split into White and non-White groups.")), style = "color: #FFFFFF"),
-            span(tags$i(h6("")), style = "color: #FFFFFF"),
-            top = 75, left = 75, width = 200, class = "panel panel-default", fixed = TRUE,
-            style = "padding: 8px; border-bottom: 1px solid #CCC; background: #5FB3E0; opacity: 1; z-index: 100;"),
-          mapviewOutput("race_map", height = 710)
-          ),
-      ),
-
-      tabPanel(
-        "Income",
-        div(
-          absolutePanel(
-            span(tags$i(h6("This is a map for exploring the income demographics of communities across Chicago.
-                           This map is scaled to the median income of the community;
-                           darker shades of green represent higher-income neighborhoods while lighter shades of green represent lower-income neighborhoods.")), style = "color: #FFFFFF"),
-            span(tags$i(h6("By hovering over a neighborhood, you will see the name of the neighborhood.")), style = "color: #FFFFFF"),
-            span(tags$i(h6("By clicking on a neighborhood, a popup graph will appear, and you will see the income breakdown of the community area.")), style = "color: #FFFFFF"),
-            top = 75, left = 75, width = 200, class = "panel panel-default", fixed = TRUE,
-            style = "padding: 8px; border-bottom: 1px solid #CCC; background: #5FB3E0; opacity: 1; z-index: 100;"),
-          mapviewOutput("income_map", height = 710)
-        )
-      )
-    ),
-    
-    ## Exmplore a community
+    ## Explore a community
     tabPanel(
       # page title
       "Explore a Community",
@@ -188,7 +146,7 @@ ui <- bootstrapPage(
           # code
           tags$h4("Code"), 
           "Code and cleaned datasets used to generate this Shiny application are available on ", 
-            tags$a(href="https://github.com/alexhanachang/equiticity-viz-and-comm", "GitHub."), tags$br(), tags$br(), 
+            tags$a(href="https://github.com/alexhanachang/chicago-bike-share-inequity-app", "GitHub."), tags$br(), tags$br(), 
           # sources
           tags$h4("Sources"),
             tags$b("Divvy data: "), 
@@ -273,44 +231,6 @@ server <- function(input, output, session) {
              alpha.regions = 1,
              popup = popupTable(divvy_density, zcol = c("community", "avg_in_2_mi_radius"))))@map
   })  
-
-  output$race_map <- renderLeaflet({
-    mapview(divvy_demographics, 
-            map.types = "CartoDB.Positron",
-            zcol = "prop_white", 
-            layer.name = "Proportion of  </br> population that is </br> White",
-            col.regions = equiticity_pal, 
-            alpha.regions = 1,
-            label = "community",
-            popup = popupGraph(race_plots, type = "png", width = 600, height = 400))@map
-  })
-  
-  output$income_map <- renderLeaflet({
-    mapview(divvy_demographics, 
-            map.types = "CartoDB.Positron",
-            zcol = "median_income",
-            layer.name = "Median income",
-            col.regions = equiticity_pal, 
-            alpha.regions = 1,
-            label = "community",
-            popup = popupGraph(income_plots, type = "png", width = 600, height = 400))@map
-  })
-  
-  # output
-  output$race_map_select <- renderLeaflet({
-    # get data
-
-    # generate map
-    (mapview(communities %>% filter(community == input$community),
-             map.types = "CartoDB.Positron",
-             # zcol = "prop_white",
-             layer.name = "Proportion of  </br> population that is </br> White",
-             col.regions = list("#c7e4f4"),
-             alpha.regions = 1,
-             label = "community",
-             popup = popupGraph(race_plots[[((communities %>% st_drop_geometry() %>% filter(communities$community == input$community))[[1]])]],
-                                type = "png", width = 600, height = 400)))@map})
-  
   
 
   ## Explore a Community (SIDEBAR PANEL BAR PLOTS)
